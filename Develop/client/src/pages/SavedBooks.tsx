@@ -3,8 +3,8 @@ import { useQuery, useMutation  } from '@apollo/client';
 
 import Auth from '../utils/auth';
 import { removeBookId } from '../utils/localStorage';
-import { QUERY_ME } from '../utils/queries';
-import { REMOVE_BOOK } from '../utils/mutations';
+import { QUERY_ME } from '../utils/queries.ts';
+import { REMOVE_BOOK } from '../utils/mutations.ts';
 import { useEffect, useState } from 'react';
 import { Book } from '../models/Book';
 interface UserData {

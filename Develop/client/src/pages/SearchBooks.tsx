@@ -10,10 +10,12 @@ import {
 } from 'react-bootstrap';
 
 import Auth from '../utils/auth';
-import { saveBook, searchGoogleBooks } from '../utils/API';
+ import { searchGoogleBooks } from '../utils/API';
 import { saveBookIds, getSavedBookIds } from '../utils/localStorage';
 import type { Book } from '../models/Book';
 import type { GoogleAPIBook } from '../models/GoogleAPIBook';
+import { SAVE_BOOK } from '../utils/mutations';
+import { useMutation } from '@apollo/client';
 
 const SearchBooks = () => {
   // create state for holding returned google api data
@@ -23,6 +25,9 @@ const SearchBooks = () => {
 
   // create state to hold saved bookId values
   const [savedBookIds, setSavedBookIds] = useState(getSavedBookIds());
+
+    // Hook to save a book with GraphQL mutation
+  const [saveBook] = useMutation(SAVE_BOOK);
 
   // set up useEffect hook to save `savedBookIds` list to localStorage on component unmount
   // learn more here: https://reactjs.org/docs/hooks-effect.html#effects-with-cleanup
@@ -63,28 +68,42 @@ const SearchBooks = () => {
   };
 
   // create function to handle saving a book to our database
+
   const handleSaveBook = async (bookId: string) => {
-    // find the book in `searchedBooks` state by the matching id
     const bookToSave: Book = searchedBooks.find((book) => book.bookId === bookId)!;
+console.log('Book to save:', bookToSave);
+    if (!bookToSave) {
+      console.error('Book not found!');
+      return;
+    }
 
-    // get token
+    // Get token
     const token = Auth.loggedIn() ? Auth.getToken() : null;
-
+console.log('Token:', token);
     if (!token) {
+      console.error('No token found!');
       return false;
     }
 
     try {
-      const response = await saveBook(bookToSave, token);
+      const { data } = await saveBook({
+        variables: {
+          input: {
+            bookId: bookToSave.bookId,
+            title: bookToSave.title,
+            authors: bookToSave.authors,
+            description: bookToSave.description,
+            image: bookToSave.image,
+          },
+        },
+      });
 
-      if (!response.ok) {
-        throw new Error('something went wrong!');
-      }
-
-      // if book successfully saves to user's account, save book id to state
+      // Update the saved book IDs
       setSavedBookIds([...savedBookIds, bookToSave.bookId]);
+
+      console.log('Book saved:', data.saveBook.savedBooks);
     } catch (err) {
-      console.error(err);
+      console.error('Error saving book:', err);
     }
   };
 

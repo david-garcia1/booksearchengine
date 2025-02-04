@@ -39,7 +39,7 @@ export const login = async (req: Request, res: Response) => {
   const correctPw = await user.isCorrectPassword(req.body.password);
 
   if (!correctPw) {
-    return res.status(400).json({ message: 'Wrong password!' });
+    return res.status(400).json({ message: 'You entered an incorrect password.' });
   }
   const token = signToken(user.username, user.password, user._id);
   return res.json({ token, user });
@@ -69,7 +69,7 @@ export const deleteBook = async (req: Request, res: Response) => {
     { new: true }
   );
   if (!updatedUser) {
-    return res.status(404).json({ message: "Couldn't find user with this id!" });
+    return res.status(404).json({ message: "This ID doesn't exist in the database." });
   }
   return res.json(updatedUser);
 };
